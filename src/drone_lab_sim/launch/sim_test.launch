@@ -1,0 +1,37 @@
+<!--
+  sim_test.launch  (ROS 2 Humble XML launch)
+  ────────────────────────────────────────────
+  Integration test: replaces real MAVROS nodes with fake_drone simulator,
+  then launches the safety_fencer, takeoff_service, and a student_cmd
+  that sends waypoints (one intentionally outside the fence).
+
+  Usage:
+    ros2 launch drone_lab_sim sim_test.launch
+-->
+<launch>
+
+  <!-- ═══════════════════  Fake MAVROS simulator  ═════════════════════ -->
+  <node pkg="drone_lab_sim" exec="fake_drone"
+        name="fake_drone" output="screen">
+    <param from="$(find-pkg-share drone_lab_sim)/config/sim_params.yaml"/>
+  </node>
+
+  <!-- ═══════════════════  Safety fencer (under test)  ════════════════ -->
+  <node pkg="drone_lab_fencer" exec="safety_fencer"
+        name="safety_fencer" output="screen">
+    <param from="$(find-pkg-share drone_lab_fencer)/config/fence_params.yaml"/>
+  </node>
+
+  <!-- ═══════════════════  Takeoff service (under test)  ══════════════ -->
+  <node pkg="drone_lab_fencer" exec="takeoff_service"
+        name="takeoff_service" output="screen">
+    <param from="$(find-pkg-share drone_lab_fencer)/config/fence_params.yaml"/>
+  </node>
+
+  <!-- ═══════════════════  Student waypoint commander  ════════════════ -->
+  <node pkg="drone_lab_sim" exec="student_cmd"
+        name="student_cmd" output="screen">
+    <param from="$(find-pkg-share drone_lab_sim)/config/sim_params.yaml"/>
+  </node>
+
+</launch>

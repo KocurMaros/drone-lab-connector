@@ -1,0 +1,19 @@
+# Simulation parameters
+# Only simulate 2 drones for lightweight testing
+fake_drone:
+  ros__parameters:
+    drone_id_min: 10
+    drone_id_max: 11
+    pose_rate: 30.0
+    drift_speed: 0.02
+
+student_cmd:
+  ros__parameters:
+    drone_id: 10
+    rate_hz: 20.0
+    hold_time_sec: 4.0
+    # Flat [x1,y1,z1, x2,y2,z2, ...] — waypoint 3 at x=5.0 is OUTSIDE fence
+    waypoints: [0.0, 0.0, 1.0,
+                1.0, -1.0, 1.5,
+                5.0, 0.0, 1.0,
+                -0.5, 0.5, 1.2]

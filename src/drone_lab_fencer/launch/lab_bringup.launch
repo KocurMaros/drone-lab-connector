@@ -1,0 +1,159 @@
+<!--
+  lab_bringup.launch  (ROS 2 Humble XML launch)
+  ───────────────────────────────────────────────
+  Launches one MAVROS node per drone (SysID 10-19) inside its own namespace,
+  plus the safety_fencer and takeoff_service nodes with YAML parameters.
+
+  Each drone's FCU is expected to stream MAVLink UDP to this PC
+  (192.168.18.201) on port  14500 + SysID.
+
+  Usage:
+    ros2 launch drone_lab_fencer lab_bringup.launch
+-->
+<launch>
+
+  <!-- ═══════════════════  MAVROS instances  ═══════════════════════════ -->
+
+  <!-- Drone 10 -->
+  <group>
+    <push_ros_namespace namespace="drone10"/>
+    <include file="$(find-pkg-share mavros)/launch/node.launch">
+      <arg name="fcu_url"          value="udp://:14510@"/>
+      <arg name="gcs_url"          value=""/>
+      <arg name="tgt_system"       value="10"/>
+      <arg name="tgt_component"    value="1"/>
+      <arg name="pluginlists_yaml" value="$(find-pkg-share mavros)/launch/apm_pluginlists.yaml"/>
+      <arg name="config_yaml"      value="$(find-pkg-share mavros)/launch/apm_config.yaml"/>
+    </include>
+  </group>
+
+  <!-- Drone 11 -->
+  <group>
+    <push_ros_namespace namespace="drone11"/>
+    <include file="$(find-pkg-share mavros)/launch/node.launch">
+      <arg name="fcu_url"          value="udp://:14511@"/>
+      <arg name="gcs_url"          value=""/>
+      <arg name="tgt_system"       value="11"/>
+      <arg name="tgt_component"    value="1"/>
+      <arg name="pluginlists_yaml" value="$(find-pkg-share mavros)/launch/apm_pluginlists.yaml"/>
+      <arg name="config_yaml"      value="$(find-pkg-share mavros)/launch/apm_config.yaml"/>
+    </include>
+  </group>
+
+  <!-- Drone 12 -->
+  <group>
+    <push_ros_namespace namespace="drone12"/>
+    <include file="$(find-pkg-share mavros)/launch/node.launch">
+      <arg name="fcu_url"          value="udp://:14512@"/>
+      <arg name="gcs_url"          value=""/>
+      <arg name="tgt_system"       value="12"/>
+      <arg name="tgt_component"    value="1"/>
+      <arg name="pluginlists_yaml" value="$(find-pkg-share mavros)/launch/apm_pluginlists.yaml"/>
+      <arg name="config_yaml"      value="$(find-pkg-share mavros)/launch/apm_config.yaml"/>
+    </include>
+  </group>
+
+  <!-- Drone 13 -->
+  <group>
+    <push_ros_namespace namespace="drone13"/>
+    <include file="$(find-pkg-share mavros)/launch/node.launch">
+      <arg name="fcu_url"          value="udp://:14513@"/>
+      <arg name="gcs_url"          value=""/>
+      <arg name="tgt_system"       value="13"/>
+      <arg name="tgt_component"    value="1"/>
+      <arg name="pluginlists_yaml" value="$(find-pkg-share mavros)/launch/apm_pluginlists.yaml"/>
+      <arg name="config_yaml"      value="$(find-pkg-share mavros)/launch/apm_config.yaml"/>
+    </include>
+  </group>
+
+  <!-- Drone 14 -->
+  <group>
+    <push_ros_namespace namespace="drone14"/>
+    <include file="$(find-pkg-share mavros)/launch/node.launch">
+      <arg name="fcu_url"          value="udp://:14514@"/>
+      <arg name="gcs_url"          value=""/>
+      <arg name="tgt_system"       value="14"/>
+      <arg name="tgt_component"    value="1"/>
+      <arg name="pluginlists_yaml" value="$(find-pkg-share mavros)/launch/apm_pluginlists.yaml"/>
+      <arg name="config_yaml"      value="$(find-pkg-share mavros)/launch/apm_config.yaml"/>
+    </include>
+  </group>
+
+  <!-- Drone 15 -->
+  <group>
+    <push_ros_namespace namespace="drone15"/>
+    <include file="$(find-pkg-share mavros)/launch/node.launch">
+      <arg name="fcu_url"          value="udp://:14515@"/>
+      <arg name="gcs_url"          value=""/>
+      <arg name="tgt_system"       value="15"/>
+      <arg name="tgt_component"    value="1"/>
+      <arg name="pluginlists_yaml" value="$(find-pkg-share mavros)/launch/apm_pluginlists.yaml"/>
+      <arg name="config_yaml"      value="$(find-pkg-share mavros)/launch/apm_config.yaml"/>
+    </include>
+  </group>
+
+  <!-- Drone 16 -->
+  <group>
+    <push_ros_namespace namespace="drone16"/>
+    <include file="$(find-pkg-share mavros)/launch/node.launch">
+      <arg name="fcu_url"          value="udp://:14516@"/>
+      <arg name="gcs_url"          value=""/>
+      <arg name="tgt_system"       value="16"/>
+      <arg name="tgt_component"    value="1"/>
+      <arg name="pluginlists_yaml" value="$(find-pkg-share mavros)/launch/apm_pluginlists.yaml"/>
+      <arg name="config_yaml"      value="$(find-pkg-share mavros)/launch/apm_config.yaml"/>
+    </include>
+  </group>
+
+  <!-- Drone 17 -->
+  <group>
+    <push_ros_namespace namespace="drone17"/>
+    <include file="$(find-pkg-share mavros)/launch/node.launch">
+      <arg name="fcu_url"          value="udp://:14517@"/>
+      <arg name="gcs_url"          value=""/>
+      <arg name="tgt_system"       value="17"/>
+      <arg name="tgt_component"    value="1"/>
+      <arg name="pluginlists_yaml" value="$(find-pkg-share mavros)/launch/apm_pluginlists.yaml"/>
+      <arg name="config_yaml"      value="$(find-pkg-share mavros)/launch/apm_config.yaml"/>
+    </include>
+  </group>
+
+  <!-- Drone 18 -->
+  <group>
+    <push_ros_namespace namespace="drone18"/>
+    <include file="$(find-pkg-share mavros)/launch/node.launch">
+      <arg name="fcu_url"          value="udp://:14518@"/>
+      <arg name="gcs_url"          value=""/>
+      <arg name="tgt_system"       value="18"/>
+      <arg name="tgt_component"    value="1"/>
+      <arg name="pluginlists_yaml" value="$(find-pkg-share mavros)/launch/apm_pluginlists.yaml"/>
+      <arg name="config_yaml"      value="$(find-pkg-share mavros)/launch/apm_config.yaml"/>
+    </include>
+  </group>
+
+  <!-- Drone 19 -->
+  <group>
+    <push_ros_namespace namespace="drone19"/>
+    <include file="$(find-pkg-share mavros)/launch/node.launch">
+      <arg name="fcu_url"          value="udp://:14519@"/>
+      <arg name="gcs_url"          value=""/>
+      <arg name="tgt_system"       value="19"/>
+      <arg name="tgt_component"    value="1"/>
+      <arg name="pluginlists_yaml" value="$(find-pkg-share mavros)/launch/apm_pluginlists.yaml"/>
+      <arg name="config_yaml"      value="$(find-pkg-share mavros)/launch/apm_config.yaml"/>
+    </include>
+  </group>
+
+  <!-- ═══════════════════  Safety fencer node  ════════════════════════ -->
+  <node pkg="drone_lab_fencer" exec="safety_fencer"
+        name="safety_fencer" output="screen">
+    <param from="$(find-pkg-share drone_lab_fencer)/config/fence_params.yaml"/>
+  </node>
+
+  <!-- ═══════════════════  Takeoff / arm service  ═════════════════════ -->
+  <node pkg="drone_lab_fencer" exec="takeoff_service"
+        name="takeoff_service" output="screen">
+    <param from="$(find-pkg-share drone_lab_fencer)/config/fence_params.yaml"/>
+  </node>
+
+</launch>

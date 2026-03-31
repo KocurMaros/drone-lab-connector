@@ -1,0 +1,21 @@
+# ROS 2 parameter file for safety_fencer and takeoff_service nodes.
+# Load via:  --ros-args --params-file <path>/fence_params.yaml
+
+safety_fencer:
+  ros__parameters:
+    fence:
+      x_min: -2.0
+      x_max:  2.0
+      y_min: -2.0
+      y_max:  2.0
+      z_min:  0.1
+      z_max:  2.5
+    drone_id_min: 10
+    drone_id_max: 19
+
+takeoff_service:
+  ros__parameters:
+    drone_id_min: 10
+    drone_id_max: 19
+    fence_z_min: 0.1
+    takeoff_altitude: 1.0

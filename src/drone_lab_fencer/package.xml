@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>drone_lab_fencer</name>
+  <version>1.0.0</version>
+  <description>
+    Multi-drone geofencing middleman for an indoor OptiTrack laboratory.
+    Validates student position commands against a 3D bounding box before
+    forwarding them to MAVROS.
+  </description>
+
+  <maintainer email="lab@university.edu">Lab Admin</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>rclcpp</depend>
+  <depend>std_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>mavros_msgs</depend>
+  <depend>std_srvs</depend>
+
+  <exec_depend>mavros</exec_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
