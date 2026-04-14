@@ -1,0 +1,70 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Drone Lab Connector – default configuration
+# Copy to ~/.config/drone_lab_connector/user_param.yaml to override.
+# ─────────────────────────────────────────────────────────────────────────────
+
+drones:
+  hotspot_mode: false
+  hotspot_ip: "10.42.0.1"
+  hotspot_sys_id: 1
+  id_min: 10
+  id_max: 19
+  # Drone IP = ip_prefix + drone_id  (e.g. 192.168.18.110 for ID 10)
+  ip_prefix: "192.168.18.1"
+  # Local UDP receive port = local_port_base + (drone_id - id_min)
+  local_port_base: 14510
+  # Remote FCU MAVLink port on each drone
+  fcu_port: 14550
+  # ROS 2 namespace prefix; actual ns = prefix + drone_id (e.g. /drones/edu10)
+  namespace_prefix: "/drones/edu"
+
+  topics:
+    student_setpoint: "student_setpoint"
+    mavros_setpoint: "mavros/setpoint_position/local"
+    error: "error"
+
+ros2_pc:
+  ip: "10.42.0.100"
+
+optitrack:
+  multicast_base: "192.168.18.2"
+  rigid_body_min: 10
+  rigid_body_max: 19
+
+# ── Safety boundaries (real-world / Optitrack frame, metres) ─────────────────
+safety:
+  boundaries:
+    x_min: -3.0
+    x_max:  3.0
+    y_min: -3.0
+    y_max:  3.0
+    z_min:  0.0
+    z_max:  3.0
+
+# ── Coordinate transforms (4×4 homogeneous, row-major) ──────────────────────
+transforms:
+  # Student local frame  →  real-world Optitrack frame
+  student_to_real:
+    - [1.0, 0.0, 0.0, 0.0]
+    - [0.0, 1.0, 0.0, 0.0]
+    - [0.0, 0.0, 1.0, 0.0]
+    - [0.0, 0.0, 0.0, 1.0]
+
+  # Real-world Optitrack frame  →  drone body / MAVROS frame
+  real_to_drone:
+    - [1.0, 0.0, 0.0, 0.0]
+    - [0.0, 1.0, 0.0, 0.0]
+    - [0.0, 0.0, 1.0, 0.0]
+    - [0.0, 0.0, 0.0, 1.0]
+
+# ── Setup-script commands (placeholders: {sys_id}, {drone_ip}) ───────────────
+setup:
+  script_path: "/home/deck/Projects/templates/mavlink-udp-comm-template"
+  indoor_command: >-
+    /home/deck/Projects/templates/mavlink-udp-comm-template/build/mavlink_udp_comm_template
+    --config /etc/mavlink-udp-comm-template/config_indoor.yaml
+    --sys-id {sys_id}
+  outdoor_command: >-
+    /home/deck/Projects/templates/mavlink-udp-comm-template/build/mavlink_udp_comm_template
+    --config /etc/mavlink-udp-comm-template/config_outdoor.yaml
+    --sys-id {sys_id}
