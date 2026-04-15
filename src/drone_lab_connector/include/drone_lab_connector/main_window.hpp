@@ -7,6 +7,8 @@
 #include <QProcess>
 #include <QPushButton>
 #include <QTextEdit>
+#include <QUdpSocket>
+#include <QtNetwork>
 
 #include <map>
 #include <memory>
@@ -48,8 +50,7 @@ class MainWindow : public QMainWindow {
   void populateDroneSelector();
   void refreshActiveList();
 
-  void spawnSetupProcess(const std::string& cmd_template, int drone_id);
-  QString substituteCommand(const std::string& tpl, int drone_id) const;
+  void sendSetupParameters(int drone_id, bool indoor);
 
   // ── data ──────────────────────────────────────────────────────────────
   std::shared_ptr<ConfigManager> config_;

@@ -15,15 +15,21 @@ find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 
 # ── Qt (prefer Qt5, accept Qt6) ─────────────────────────────────────────────
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Network)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Network)
 
 # ── Other dependencies ───────────────────────────────────────────────────────
 find_package(Eigen3 REQUIRED)
 find_package(yaml-cpp REQUIRED)
 
+find_package(MavlinkUdpInterface REQUIRED)
+find_path(MAVLINK_INCLUDE_DIR NAMES mavlink/common/mavlink.h)
+
 # ── Headers ──────────────────────────────────────────────────────────────────
-include_directories(include)
+include_directories(
+  include
+  ${MAVLINK_INCLUDE_DIR}
+)
 
 # ── Executable ───────────────────────────────────────────────────────────────
 add_executable(drone_lab_connector
@@ -35,9 +41,10 @@ add_executable(drone_lab_connector
 )
 
 target_link_libraries(drone_lab_connector
-  Qt${QT_VERSION_MAJOR}::Widgets
+  Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Network
   Eigen3::Eigen
   yaml-cpp
+  MavlinkUdpInterface::mavlink_udp_interface
 )
 
 ament_target_dependencies(drone_lab_connector

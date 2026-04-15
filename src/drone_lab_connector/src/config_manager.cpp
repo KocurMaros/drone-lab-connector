@@ -113,7 +113,7 @@ std::string ConfigManager::droneNamespace(int id) const {
 std::string ConfigManager::fcuUrl(int id) const {
   // udp://[bind_host][:bind_port]@[remote_host][:remote_port]
   std::ostringstream ss;
-  ss << "udp://:" << localPort(id) << "@" << droneIp(id) << ":" << config_.drones.fcu_port;
+  ss << "udp://:" << localPort(id) << "@";
   return ss.str();
 }
 

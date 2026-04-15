@@ -20,7 +20,12 @@
 #include <QTableWidget>
 #include <QVBoxLayout>
 
+#include <mavlink/common/mavlink.h>
+#include <mavlink_udp_interface.hpp>
+
 #include <sstream>
+#include <thread>
+#include <chrono>
 
 // ─── construction / destruction ─────────────────────────────────────────────
 
@@ -257,12 +262,11 @@ void MainWindow::onKillMavros() {
     proc->terminate();
     if (!proc->waitForFinished(3000)) proc->kill();
   }
-  delete proc;
-  mavros_processes_.erase(id);
-  safety_node_->deactivateDrone(id);
+  // DO NOT `delete proc`, `mavros_processes_.erase(id)`, or `safety_node_->deactivateDrone(id)` here.
+  // The `QProcess::finished` signal automatically fires and invokes `onProcessFinished()`,
+  // which will safely perform memory cleanup and UI roster refresh without triggering a double-free!
 
-  appendLog(QString("[INFO] Killed MAVROS for EDU%1").arg(id));
-  refreshActiveList();
+  appendLog(QString("[INFO] Requested termination for MAVROS EDU%1").arg(id));
 }
 
 void MainWindow::onProcessFinished(int drone_id, int exitCode,
@@ -274,8 +278,9 @@ void MainWindow::onProcessFinished(int drone_id, int exitCode,
                 .arg(exitCode));
 
   if (mavros_processes_.count(drone_id)) {
-    delete mavros_processes_[drone_id];
+    QProcess* proc = mavros_processes_[drone_id];
     mavros_processes_.erase(drone_id);
+    proc->deleteLater(); // Defer deletion so Qt loop cleans it up without crashing
   }
   safety_node_->deactivateDrone(drone_id);
   refreshActiveList();
@@ -285,44 +290,89 @@ void MainWindow::onProcessFinished(int drone_id, int exitCode,
 
 void MainWindow::onSetupIndoor() {
   int id = drone_selector_->currentData().toInt();
-  spawnSetupProcess(config_->config().setup.indoor_command, id);
+  sendSetupParameters(id, true);
 }
 
 void MainWindow::onSetupOutdoor() {
   int id = drone_selector_->currentData().toInt();
-  spawnSetupProcess(config_->config().setup.outdoor_command, id);
+  sendSetupParameters(id, false);
 }
 
-void MainWindow::spawnSetupProcess(const std::string& cmd_template,
-                                   int drone_id) {
-  QString cmd = substituteCommand(cmd_template, drone_id);
-  if (cmd.isEmpty()) {
-    appendLog("[ERROR] Setup command template is empty");
-    return;
+void MainWindow::sendSetupParameters(int drone_id, bool indoor) {
+  std::string ip = config_->droneIp(drone_id);
+  int port = config_->config().drones.fcu_port; // 14550
+  
+  // Always use the selected drone_id as the target System ID.
+  // (Using hotspot_sys_id defaults to 1, causing the drone to ignore packets!)
+  int target_sys = drone_id;
+  
+  QUdpSocket udp;
+  QHostAddress targetAddress(QString::fromStdString(ip));
+
+  // SEND HEARTBEAT first so mavlink-router accepts this UDP endpoint
+  mavlink_message_t hb_msg;
+  mavlink_msg_heartbeat_pack(255, 1, &hb_msg, MAV_TYPE_GCS, MAV_AUTOPILOT_INVALID, 0, 0, 0);
+  uint8_t hb_buffer[MAVLINK_MAX_PACKET_LEN];
+  uint16_t hb_len = mavlink_msg_to_send_buffer(hb_buffer, &hb_msg);
+  
+  for (int i = 0; i < 3; ++i) {
+      udp.writeDatagram(reinterpret_cast<const char*>(hb_buffer), hb_len, targetAddress, port);
+      std::this_thread::sleep_for(std::chrono::milliseconds(5));
   }
-
-  appendLog(QString("[SETUP] Running: %1").arg(cmd));
-
-  auto* proc = new QProcess(this);
-  proc->setProcessChannelMode(QProcess::MergedChannels);
-  connect(proc, &QProcess::readyReadStandardOutput, this,
-          [this, proc, drone_id]() {
-            appendLog(QString("[SETUP EDU%1] %2")
-                          .arg(drone_id)
-                          .arg(QString(proc->readAllStandardOutput()).trimmed()));
-          });
-  connect(proc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
-          proc, &QProcess::deleteLater);
-
-  proc->start("/bin/bash", QStringList() << "-c" << cmd);
-}
-
-QString MainWindow::substituteCommand(const std::string& tpl,
-                                      int drone_id) const {
-  QString cmd = QString::fromStdString(tpl);
-  cmd.replace("{sys_id}",   QString::number(drone_id));
-  cmd.replace("{drone_ip}", QString::fromStdString(config_->droneIp(drone_id)));
-  return cmd;
+  std::this_thread::sleep_for(std::chrono::milliseconds(50));
+  
+  auto send_param = [&](const std::string& name, float value, uint8_t param_type = MAV_PARAM_TYPE_REAL32) {
+     mavlink_message_t msg;
+     mavlink_param_set_t param;
+     param.target_system = target_sys;
+     param.target_component = 1; // MAV_COMP_ID_AUTOPILOT1
+     param.param_value = value;
+     param.param_type = param_type;
+     
+     std::memset(param.param_id, 0, 16);
+     std::strncpy(param.param_id, name.c_str(), 16);
+     
+     mavlink_msg_param_set_encode(255, 1, &msg, &param);
+     
+     uint8_t buffer[MAVLINK_MAX_PACKET_LEN];
+     uint16_t len = mavlink_msg_to_send_buffer(buffer, &msg);
+     
+     // Queue message multiple times to ensure UDP delivery
+     udp.writeDatagram(reinterpret_cast<const char*>(buffer), len, targetAddress, port);
+     std::this_thread::sleep_for(std::chrono::milliseconds(5));
+     udp.writeDatagram(reinterpret_cast<const char*>(buffer), len, targetAddress, port);
+     std::this_thread::sleep_for(std::chrono::milliseconds(5));
+     udp.writeDatagram(reinterpret_cast<const char*>(buffer), len, targetAddress, port);
+     std::this_thread::sleep_for(std::chrono::milliseconds(20));
+  };
+  
+  // Wait to let packets flush
+  udp.waitForBytesWritten(100);
+  
+  appendLog(QString("[SETUP EDU%1] Setting params for %2 (IP: %3:%4)...")
+                .arg(drone_id)
+                .arg(indoor ? "INDOOR (OptiTrack)" : "OUTDOOR (GPS/Baro)")
+                .arg(QString::fromStdString(ip))
+                .arg(port));
+  
+  // Revert back to REAL32. ArduPilot parameter sets via Float directly natively handles uint conversions correctly.
+  if (indoor) {
+    send_param("EK3_SRC1_POSXY", 6.0f, MAV_PARAM_TYPE_REAL32); // ExternalNav
+    send_param("EK3_SRC1_POSZ",  6.0f, MAV_PARAM_TYPE_REAL32); // ExternalNav
+    send_param("EK3_SRC1_VELXY", 6.0f, MAV_PARAM_TYPE_REAL32); // ExternalNav
+    send_param("EK3_SRC1_VELZ",  6.0f, MAV_PARAM_TYPE_REAL32); // ExternalNav
+    send_param("EK3_SRC1_YAW",   6.0f, MAV_PARAM_TYPE_REAL32); // ExternalNav
+  } else {
+    send_param("EK3_SRC1_POSXY", 3.0f, MAV_PARAM_TYPE_REAL32); // GPS
+    send_param("EK3_SRC1_POSZ",  1.0f, MAV_PARAM_TYPE_REAL32); // Baro
+    send_param("EK3_SRC1_VELXY", 3.0f, MAV_PARAM_TYPE_REAL32); // GPS
+    send_param("EK3_SRC1_VELZ",  3.0f, MAV_PARAM_TYPE_REAL32); // GPS
+    send_param("EK3_SRC1_YAW",   1.0f, MAV_PARAM_TYPE_REAL32); // Compass
+  }
+  
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  udp.waitForBytesWritten(100);
+  appendLog(QString("[SETUP EDU%1] Parameter send complete.").arg(drone_id));
 }
 
 // ─── log ────────────────────────────────────────────────────────────────────
