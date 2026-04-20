@@ -19,8 +19,8 @@ struct DroneConfig {
   std::string ns_prefix = "/drones/edu";
 
   // Topic suffixes (appended to <ns>/)
-  std::string student_setpoint_topic = "student_setpoint";
-  std::string mavros_setpoint_topic  = "mavros/setpoint_position/local";
+  std::string student_setpoint_topic = "setpoint_position/local";
+  std::string mavros_setpoint_topic  = "mavros/internal_setpoint_position/local";
   std::string error_topic            = "error";
 };
 
@@ -42,7 +42,8 @@ struct AppConfig {
   Eigen::Matrix4d student_to_real = Eigen::Matrix4d::Identity();
   Eigen::Matrix4d real_to_drone   = Eigen::Matrix4d::Identity();
   SetupConfig  setup;
-  std::string  ros2_pc_ip = "192.168.18.100";
+  std::string  ros2_pc_ip     = "192.168.18.100";
+  std::string  connector_ip   = "192.168.18.201";
 };
 
 // ─── ConfigManager ──────────────────────────────────────────────────────────

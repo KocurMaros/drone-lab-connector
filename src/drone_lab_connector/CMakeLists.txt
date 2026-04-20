@@ -13,6 +13,9 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(visualization_msgs REQUIRED)
+find_package(mavros_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
 
 # ── Qt (prefer Qt5, accept Qt6) ─────────────────────────────────────────────
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Network)
@@ -22,7 +25,6 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Network)
 find_package(Eigen3 REQUIRED)
 find_package(yaml-cpp REQUIRED)
 
-find_package(MavlinkUdpInterface REQUIRED)
 find_path(MAVLINK_INCLUDE_DIR NAMES mavlink/common/mavlink.h)
 
 # ── Headers ──────────────────────────────────────────────────────────────────
@@ -44,13 +46,15 @@ target_link_libraries(drone_lab_connector
   Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Network
   Eigen3::Eigen
   yaml-cpp
-  MavlinkUdpInterface::mavlink_udp_interface
 )
 
 ament_target_dependencies(drone_lab_connector
   rclcpp
   std_msgs
   geometry_msgs
+  visualization_msgs
+  mavros_msgs
+  sensor_msgs
 )
 
 # ── Install ──────────────────────────────────────────────────────────────────

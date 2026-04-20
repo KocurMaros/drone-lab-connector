@@ -113,7 +113,7 @@ std::string ConfigManager::droneNamespace(int id) const {
 std::string ConfigManager::fcuUrl(int id) const {
   // udp://[bind_host][:bind_port]@[remote_host][:remote_port]
   std::ostringstream ss;
-  ss << "udp://:" << localPort(id) << "@";
+  ss << "udp://:" << localPort(id) << "@" << droneIp(id) << ":" << config_.drones.fcu_port;
   return ss.str();
 }
 
@@ -141,6 +141,10 @@ void ConfigManager::loadFromFile(const std::string& path) {
 
   if (auto r = root["ros2_pc"]) {
     if (r["ip"]) config_.ros2_pc_ip = r["ip"].as<std::string>();
+  }
+
+  if (auto c = root["connector"]) {
+    if (c["ip"]) config_.connector_ip = c["ip"].as<std::string>();
   }
 
   if (auto s = root["safety"]) {
@@ -186,6 +190,8 @@ void ConfigManager::saveToFile(const std::string& path) const {
   root["drones"]["topics"]["error"]            = config_.drones.error_topic;
 
   root["ros2_pc"]["ip"] = config_.ros2_pc_ip;
+
+  root["connector"]["ip"] = config_.connector_ip;
 
   // safety
   root["safety"]["boundaries"]["x_min"] = config_.safety.x_min;

@@ -19,12 +19,15 @@ drones:
   namespace_prefix: "/drones/edu"
 
   topics:
-    student_setpoint: "student_setpoint"
-    mavros_setpoint: "mavros/setpoint_position/local"
+    student_setpoint: "setpoint_position/local"
+    mavros_setpoint: "mavros/internal_setpoint_position/local"
     error: "error"
 
 ros2_pc:
   ip: "10.42.0.100"
+
+connector:
+  ip: "192.168.18.201"
 
 optitrack:
   multicast_base: "192.168.18.2"
@@ -52,8 +55,8 @@ transforms:
 
   # Real-world Optitrack frame  →  drone body / MAVROS frame
   real_to_drone:
-    - [1.0, 0.0, 0.0, 0.0]
-    - [0.0, 1.0, 0.0, 0.0]
+    - [1.0, 0.0, 0.0, -16.5]
+    - [0.0, 1.0, 0.0, -9.0]
     - [0.0, 0.0, 1.0, 0.0]
     - [0.0, 0.0, 0.0, 1.0]
 

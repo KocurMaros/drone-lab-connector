@@ -210,7 +210,15 @@ void MainWindow::onSpawnMavros() {
        << "--ros-args"
        << "-p" << QString("fcu_url:=%1").arg(QString::fromStdString(fcu))
        << "-p" << QString("tgt_system:=%1").arg(drone_id)
-       << "--remap" << QString("__ns:=%1").arg(QString::fromStdString(ns));
+       << "--remap" << QString("__ns:=%1").arg(QString::fromStdString(ns))
+       // ── Remap writable topics to internal names (prevent student bypass) ──
+       << "--remap" << "mavros/setpoint_position/local:=mavros/internal_setpoint_position/local"
+       << "--remap" << "mavros/setpoint_velocity/cmd_vel_unstamped:=mavros/internal_setpoint_velocity/cmd_vel_unstamped"
+       << "--remap" << "mavros/setpoint_raw/local:=mavros/_internal/setpoint_raw/local"
+       << "--remap" << "mavros/setpoint_raw/global:=mavros/_internal/setpoint_raw/global"
+       << "--remap" << "mavros/setpoint_raw/attitude:=mavros/_internal/setpoint_raw/attitude"
+       << "--remap" << "mavros/setpoint_attitude/attitude:=mavros/_internal/setpoint_attitude/attitude"
+       << "--remap" << "mavros/setpoint_attitude/cmd_vel:=mavros/_internal/setpoint_attitude/cmd_vel";
 
   auto* proc = new QProcess(this);
   proc->setProcessChannelMode(QProcess::MergedChannels);
@@ -357,12 +365,25 @@ void MainWindow::sendSetupParameters(int drone_id, bool indoor) {
   
   // Revert back to REAL32. ArduPilot parameter sets via Float directly natively handles uint conversions correctly.
   if (indoor) {
-    send_param("EK3_SRC1_POSXY", 6.0f, MAV_PARAM_TYPE_REAL32); // ExternalNav
-    send_param("EK3_SRC1_POSZ",  6.0f, MAV_PARAM_TYPE_REAL32); // ExternalNav
-    send_param("EK3_SRC1_VELXY", 6.0f, MAV_PARAM_TYPE_REAL32); // ExternalNav
-    send_param("EK3_SRC1_VELZ",  6.0f, MAV_PARAM_TYPE_REAL32); // ExternalNav
-    send_param("EK3_SRC1_YAW",   6.0f, MAV_PARAM_TYPE_REAL32); // ExternalNav
+    send_param("VISO_TYPE", 1.0f);
+    send_param("AHRS_EKF_TYPE", 3.0f);
+    send_param("EK3_ENABLE", 1.0f);
+    send_param("EK2_ENABLE", 0.0f);
+    send_param("COMPASS_USE", 0.0f);
+    send_param("COMPASS_USE2", 0.0f);
+    send_param("COMPASS_USE3", 0.0f);
+    send_param("VISO_POS_M_NSE", 0.3f);
+    send_param("VISO_YAW_M_NSE", 0.2f);
+    send_param("EK3_SRC1_POSXY", 6.0f); // ExternalNav
+    send_param("EK3_SRC1_POSZ",  6.0f); // ExternalNav
+    send_param("EK3_SRC1_VELXY", 0.0f); // ExternalNav
+    send_param("EK3_SRC1_VELZ",  0.0f); // ExternalNav
+    send_param("EK3_SRC1_YAW",   6.0f); // ExternalNav
   } else {
+    send_param("VISO_TYPE", 0.0f);
+    send_param("COMPASS_USE", 1.0f);
+    send_param("COMPASS_USE2", 1.0f);
+    send_param("COMPASS_USE3", 1.0f);
     send_param("EK3_SRC1_POSXY", 3.0f, MAV_PARAM_TYPE_REAL32); // GPS
     send_param("EK3_SRC1_POSZ",  1.0f, MAV_PARAM_TYPE_REAL32); // Baro
     send_param("EK3_SRC1_VELXY", 3.0f, MAV_PARAM_TYPE_REAL32); // GPS

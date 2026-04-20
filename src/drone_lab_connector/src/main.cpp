@@ -24,7 +24,9 @@ int main(int argc, char* argv[]) {
   auto safety_node = std::make_shared<SafetyNode>(config);
 
   // ── Spin the ROS executor in a background thread ──────────────────────
-  auto executor = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
+  // MultiThreadedExecutor is required so service proxy callbacks can
+  // block-wait for MAVROS responses without deadlocking.
+  auto executor = std::make_shared<rclcpp::executors::MultiThreadedExecutor>();
   executor->add_node(safety_node);
 
   std::thread ros_thread([executor]() { executor->spin(); });
