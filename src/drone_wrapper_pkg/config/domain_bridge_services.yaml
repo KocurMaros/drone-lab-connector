@@ -1,0 +1,7 @@
+name: drone_bridge_services
+from_domain: 0
+to_domain: 11
+
+services:
+  /drone11/cmd/arming:
+    type: mavros_msgs/srv/CommandBool

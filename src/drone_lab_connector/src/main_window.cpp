@@ -206,19 +206,10 @@ void MainWindow::onSpawnMavros() {
   const std::string ns    = config_->droneNamespace(drone_id);
 
   QStringList args;
-  args << "run" << "mavros" << "mavros_node"
-       << "--ros-args"
-       << "-p" << QString("fcu_url:=%1").arg(QString::fromStdString(fcu))
-       << "-p" << QString("tgt_system:=%1").arg(drone_id)
-       << "--remap" << QString("__ns:=%1").arg(QString::fromStdString(ns))
-       // ── Remap writable topics to internal names (prevent student bypass) ──
-       << "--remap" << "mavros/setpoint_position/local:=mavros/internal_setpoint_position/local"
-       << "--remap" << "mavros/setpoint_velocity/cmd_vel_unstamped:=mavros/internal_setpoint_velocity/cmd_vel_unstamped"
-       << "--remap" << "mavros/setpoint_raw/local:=mavros/_internal/setpoint_raw/local"
-       << "--remap" << "mavros/setpoint_raw/global:=mavros/_internal/setpoint_raw/global"
-       << "--remap" << "mavros/setpoint_raw/attitude:=mavros/_internal/setpoint_raw/attitude"
-       << "--remap" << "mavros/setpoint_attitude/attitude:=mavros/_internal/setpoint_attitude/attitude"
-       << "--remap" << "mavros/setpoint_attitude/cmd_vel:=mavros/_internal/setpoint_attitude/cmd_vel";
+  args << "launch" << "drone_wrapper_pkg" << "drone_wrapper.launch.py"
+       << QString("fcu_url:=%1").arg(QString::fromStdString(fcu))
+       << QString("tgt_system:=%1").arg(drone_id)
+       << QString("namespace:=%1").arg(QString::fromStdString(ns));
 
   auto* proc = new QProcess(this);
   proc->setProcessChannelMode(QProcess::MergedChannels);

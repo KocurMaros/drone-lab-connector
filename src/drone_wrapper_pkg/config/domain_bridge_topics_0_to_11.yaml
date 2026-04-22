@@ -1,0 +1,8 @@
+name: drone_bridge_commands
+from_domain: 0
+to_domain: 11
+
+topics:
+  # Post-validation MAVROS command endpoints
+  /drones/edu11/setpoint_position/local:
+    type: geometry_msgs/msg/PoseStamped
