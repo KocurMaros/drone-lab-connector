@@ -25,11 +25,12 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Network)
 find_package(Eigen3 REQUIRED)
 find_package(yaml-cpp REQUIRED)
 
-find_path(MAVLINK_INCLUDE_DIR NAMES mavlink/common/mavlink.h)
+find_path(MAVLINK_INCLUDE_DIR NAMES mavlink/v2.0/common/mavlink.h)
 
 # ── Headers ──────────────────────────────────────────────────────────────────
 include_directories(
   include
+  /home/deck/Projects/libs/mavlink-udp-interface/include
   ${MAVLINK_INCLUDE_DIR}
 )
 

@@ -3,15 +3,15 @@ from_domain: 11
 to_domain: 0
 
 topics:
-  /drones/edu11/mavros/state:
+  /drones/edu11/state:
     type: mavros_msgs/msg/State
     remap: /drone11/state
-  /drones/edu11/mavros/local_position/odom:
-    type: nav_msgs/msg/Odometry
+  /drones/edu11/mavros_node/pose:
+    type: geometry_msgs/msg/PoseStamped
     remap: /drone11/odom
-  /drones/edu11/mavros/battery:
+  /drones/edu11/battery:
     type: sensor_msgs/msg/BatteryState
     remap: /drone11/battery
-  /drones/edu11/mavros/global_position/global:
+  /drones/edu11/global_position/global:
     type: sensor_msgs/msg/NavSatFix
     remap: /drone11/gps

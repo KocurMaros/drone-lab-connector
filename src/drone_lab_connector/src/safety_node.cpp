@@ -53,7 +53,7 @@ void SafetyNode::activateDrone(int drone_id) {
 
   // ── Pose tracking (MAVROS native topic, for RViz markers) ─────────────
   h.pose_sub = create_subscription<geometry_msgs::msg::PoseStamped>(
-      ns + "/local_position/pose", rclcpp::SensorDataQoS(),
+      ns + "/mavros_node/pose", rclcpp::SensorDataQoS(),
       [this, drone_id](geometry_msgs::msg::PoseStamped::SharedPtr msg) {
         std::lock_guard<std::recursive_mutex> lk(mtx_);
         auto it = handles_.find(drone_id);
@@ -73,9 +73,9 @@ void SafetyNode::activateDrone(int drone_id) {
       });
 
   // ── Service proxies (student calls safe/*, safety forwards to MAVROS) ─
-  // Arming: student → /safe/cmd/arming → safety → /cmd/arming (MAVROS)
+  // Arming: student → /safe/cmd/arming → safety → /mavros_node/arming (MAVROS)
   h.arm_cli = create_client<mavros_msgs::srv::CommandBool>(
-      ns + "/cmd/arming",
+      ns + "/mavros_node/arming",
       rmw_qos_profile_services_default, service_cbg_);
   h.arm_srv = create_service<mavros_msgs::srv::CommandBool>(
       ns + "/safe/cmd/arming",
@@ -99,9 +99,9 @@ void SafetyNode::activateDrone(int drone_id) {
       },
       rmw_qos_profile_services_default, service_cbg_);
 
-  // Takeoff: student → /safe/cmd/takeoff → safety → /cmd/takeoff (MAVROS)
+  // Takeoff: student → /safe/cmd/takeoff → safety → /mavros_node/takeoff (MAVROS)
   h.takeoff_cli = create_client<mavros_msgs::srv::CommandTOL>(
-      ns + "/cmd/takeoff",
+      ns + "/mavros_node/takeoff",
       rmw_qos_profile_services_default, service_cbg_);
   h.takeoff_srv = create_service<mavros_msgs::srv::CommandTOL>(
       ns + "/safe/cmd/takeoff",
@@ -112,9 +112,9 @@ void SafetyNode::activateDrone(int drone_id) {
       },
       rmw_qos_profile_services_default, service_cbg_);
 
-  // Land: student → /safe/cmd/land → safety → /cmd/land (MAVROS)
+  // Land: student → /safe/cmd/land → safety → /mavros_node/land (MAVROS)
   h.land_cli = create_client<mavros_msgs::srv::CommandTOL>(
-      ns + "/cmd/land",
+      ns + "/mavros_node/land",
       rmw_qos_profile_services_default, service_cbg_);
   h.land_srv = create_service<mavros_msgs::srv::CommandTOL>(
       ns + "/safe/cmd/land",

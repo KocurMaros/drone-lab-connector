@@ -3,7 +3,7 @@ from rclpy.node import Node
 from rclpy.executors import MultiThreadedExecutor
 import rclpy.context
 from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
-from mavros_msgs.srv import CommandBool, SetMode
+from mavros_msgs.srv import CommandBool, SetMode, CommandTOL
 
 class StudentFacingServer(Node):
     def __init__(self, drone_facing_node, cmd_srv_name, context):
@@ -12,13 +12,65 @@ class StudentFacingServer(Node):
         
         # Must separate service callbacks to handle synchronous backend calls
         self.cb_group = MutuallyExclusiveCallbackGroup()
-        self.srv = self.create_service(
+        self.arm_srv = self.create_service(
             CommandBool, 
             cmd_srv_name, 
             self.arm_callback,
             callback_group=self.cb_group
         )
+        self.mode_srv = self.create_service(
+            SetMode,
+            f'/drones/edu11/set_mode',
+            self.mode_callback,
+            callback_group=self.cb_group
+        )
+        self.raw_arm_srv = self.create_service(
+            CommandBool,
+            f'/drones/edu11/mavros_node/arming',
+            self.raw_arm_callback,
+            callback_group=self.cb_group
+        )
+        self.takeoff_srv = self.create_service(
+            CommandTOL,
+            f'/drones/edu11/mavros_node/takeoff',
+            self.takeoff_callback,
+            callback_group=self.cb_group
+        )
+        self.land_srv = self.create_service(
+            CommandTOL,
+            f'/drones/edu11/mavros_node/land',
+            self.land_callback,
+            callback_group=self.cb_group
+        )
         self.get_logger().info(f"Student-facing Arming Service natively exposed on Domain 0 -> {cmd_srv_name}")
+        self.get_logger().info(f"Student-facing SetMode Service natively exposed on Domain 0 -> /drones/edu11/set_mode")
+
+    def raw_arm_callback(self, request, response):
+        self.get_logger().info(f"GUI requested raw arm (value={request.value})")
+        success = self.drone_node.call_arm(request.value)
+        response.success = success
+        response.result = 0 if success else 1
+        return response
+
+    def takeoff_callback(self, request, response):
+        self.get_logger().info(f"GUI requested takeoff")
+        success = self.drone_node.call_takeoff(request)
+        response.success = success
+        response.result = 0 if success else 1
+        return response
+
+    def land_callback(self, request, response):
+        self.get_logger().info(f"GUI requested land")
+        success = self.drone_node.call_land(request)
+        response.success = success
+        response.result = 0 if success else 1
+        return response
+
+    def mode_callback(self, request, response):
+        self.get_logger().info(f"Student requested mode (mode={request.custom_mode})")
+        success = self.drone_node.call_set_mode(request.custom_mode)
+        response.mode_sent = success
+        return response
 
     def arm_callback(self, request, response):
         self.get_logger().info(f"Student requested arming (value={request.value})")
@@ -49,7 +101,17 @@ class DroneFacingClient(Node):
         )
         self.arm_cli = self.create_client(
             CommandBool, 
-            f'{mavros_ns}/cmd/arming',
+            f'{mavros_ns}/mavros_node/arming',
+            callback_group=self.cb_group
+        )
+        self.takeoff_cli = self.create_client(
+            CommandTOL, 
+            f'{mavros_ns}/mavros_node/takeoff',
+            callback_group=self.cb_group
+        )
+        self.land_cli = self.create_client(
+            CommandTOL, 
+            f'{mavros_ns}/mavros_node/land',
             callback_group=self.cb_group
         )
 
@@ -93,6 +155,22 @@ class DroneFacingClient(Node):
         req = CommandBool.Request()
         req.value = value
         future = self.arm_cli.call(req)
+        return future.success
+
+    def call_takeoff(self, req):
+        if not self.takeoff_cli.wait_for_service(timeout_sec=3.0):
+            self.get_logger().error(f"Service {self.takeoff_cli.srv_name} unreachable on Domain 11.")
+            return False
+            
+        future = self.takeoff_cli.call(req)
+        return future.success
+
+    def call_land(self, req):
+        if not self.land_cli.wait_for_service(timeout_sec=3.0):
+            self.get_logger().error(f"Service {self.land_cli.srv_name} unreachable on Domain 11.")
+            return False
+            
+        future = self.land_cli.call(req)
         return future.success
 
 def main(args=None):
