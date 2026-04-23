@@ -18,7 +18,7 @@ class ValidationNode(Node):
         boundaries_file = self.get_parameter('boundaries_file').value
         
         # Load boundaries
-        self.boundaries = {'x_min': -5.0, 'x_max': 5.0, 'y_min': -5.0, 'y_max': 5.0, 'z_min': 0.0, 'z_max': 3.0}
+        self.boundaries = {'x_min': -0.5, 'x_max': 4.0, 'y_min': -0.5, 'y_max': 6.0, 'z_min': 0.5, 'z_max': 2.5}
         if boundaries_file and os.path.exists(boundaries_file):
             with open(boundaries_file, 'r') as f:
                 self.boundaries.update(yaml.safe_load(f))

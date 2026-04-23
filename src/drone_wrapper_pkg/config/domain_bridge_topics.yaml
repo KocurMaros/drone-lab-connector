@@ -8,7 +8,7 @@ topics:
     remap: /drone11/state
   /drones/edu11/mavros_node/pose:
     type: geometry_msgs/msg/PoseStamped
-    remap: /drone11/odom
+    remap: /drone11/local_position/pose
   /drones/edu11/battery:
     type: sensor_msgs/msg/BatteryState
     remap: /drone11/battery
